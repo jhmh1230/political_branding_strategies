@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR 출석체크</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        h2 {
+            color: #555;
+            font-size: 20px;
+            margin-bottom: 30px;
+            font-weight: normal;
+            color: #007bff;
+        }
+        input[type="text"], input[type="tel"] {
+            width: calc(100% - 20px);
+            padding: 12px 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        .result-message {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>정치브랜딩전략 출석체크</h1>
+        <h2 id="week-title">로딩 중...</h2>
+        <form id="attendance-form">
+            <input type="tel" name="studentId" placeholder="학번" required>
+            <input type="text" name="studentName" placeholder="이름" required>
+            <button type="submit" id="submit-button">제출</button>
+        </form>
+        <div class="result-message" id="result"></div>
+    </div>
+
+    <script>
+        // 2. 여기에 새로 복사한 Apps Script URL을 붙여넣으세요
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVsluVvgqgociUTrxol3rGXG_kAYbIKJIA7s2nETmeYZcnJGb45VBNsTRqT4Ja_guK/exec";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const weekTitle = document.getElementById('week-title');
+            const urlParams = new URLSearchParams(window.location.search);
+            const week = urlParams.get('week');
+
+            if (week) {
+                weekTitle.textContent = `${week} 주차`;
+            } else {
+                weekTitle.textContent = "정상적인 경로가 아닙니다.";
+                document.getElementById('submit-button').disabled = true;
+            }
+        });
+
+        const form = document.getElementById('attendance-form');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const submitButton = document.getElementById('submit-button');
+            const resultDiv = document.getElementById('result');
+            const urlParams = new URLSearchParams(window.location.search);
+            const week = urlParams.get('week');
+
+            submitButton.disabled = true;
+            submitButton.textContent = '처리 중...';
+            resultDiv.textContent = '';
+
+            const formData = {
+                studentId: form.studentId.value,
+                studentName: form.studentName.value,
+                week: week
+            };
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(formData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                resultDiv.textContent = data.message;
+                if (data.result === 'success') {
+                    resultDiv.style.color = 'green';
+                    form.studentId.value = '';
+                    form.studentName.value = '';
+                } else {
+                    resultDiv.style.color =
